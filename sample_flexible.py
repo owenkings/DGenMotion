@@ -128,6 +128,14 @@ def main(args):
     sample = 0
     kinematic_chain = kit_kinematic_chain if args.dataset_name == 'kit' else t2m_kinematic_chain
 
+    # 打印输出格式信息
+    if args.output_format == 'both':
+        print("📹 输出格式: MP4视频 + NPY文件")
+    elif args.output_format == 'video':
+        print("📹 输出格式: 仅MP4视频")
+    elif args.output_format == 'npy':
+        print("💾 输出格式: 仅NPY文件")
+
     for r in range(args.repeat_times):
         print("-->Repeat %d" % r)
         with torch.no_grad():
@@ -143,9 +151,19 @@ def main(args):
             os.makedirs(s_path, exist_ok=True)
             joint_data = joint_data[:m_length[k]]
             joint = recover_from_ric(torch.from_numpy(joint_data).float(), nb_joints).numpy()
-            save_path = pjoin(s_path, "caption:%s_sample%d_repeat%d_len%d.mp4" % (caption, k, r, m_length[k]))
-            plot_3d_motion(save_path, kinematic_chain, joint, title=caption, fps=20)
-            np.save(pjoin(s_path, "caption:%s_sample%d_repeat%d_len%d.npy" % (caption, k, r, m_length[k])), joint)
+            
+            # 根据 output_format 参数决定生成什么
+            if args.output_format in ['video', 'both']:
+                # 生成视频
+                save_path = pjoin(s_path, "caption:%s_sample%d_repeat%d_len%d.mp4" % (caption, k, r, m_length[k]))
+                plot_3d_motion(save_path, kinematic_chain, joint, title=caption, fps=20)
+                print(f"    ✅ 已生成视频: {save_path}")
+            
+            if args.output_format in ['npy', 'both']:
+                # 生成NPY文件
+                npy_path = pjoin(s_path, "caption:%s_sample%d_repeat%d_len%d.npy" % (caption, k, r, m_length[k]))
+                np.save(npy_path, joint)
+                print(f"    ✅ 已保存NPY文件: {npy_path}")
 
 
 if __name__ == "__main__":
@@ -168,5 +186,12 @@ if __name__ == "__main__":
     parser.add_argument("--motion_length", default=0, type=int)
     parser.add_argument("--repeat_times", default=1, type=int)
     parser.add_argument('--hard_pseudo_reorder', action="store_true")
+    
+    # 新增参数：控制输出格式
+    parser.add_argument('--output_format', type=str, default='both', 
+                        choices=['video', 'npy', 'both'],
+                        help='输出格式选择: video(仅视频), npy(仅npy文件), both(视频+npy)')
+    
     arg = parser.parse_args()
     main(arg)
+

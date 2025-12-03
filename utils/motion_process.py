@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, FFMpegWriter, PillowWriter
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import mpl_toolkits.mplot3d.axes3d as p3
 
@@ -146,10 +146,13 @@ def plot_3d_motion(save_path, kinematic_tree, joints, title, figsize=(10, 10), f
     data[..., 2] -= data[:, 0:1, 2]
 
     def update(index):
-        ax.lines = []
-        ax.collections = []
+        ax.clear()
         ax.view_init(elev=120, azim=-90)
         ax.dist = 7.5
+        ax.set_xlim3d([-radius / 2, radius / 2])
+        ax.set_ylim3d([0, radius])
+        ax.set_zlim3d([0, radius])
+        ax.grid(b=False)
         plot_xzPlane(MINS[0] - trajec[index, 0], MAXS[0] - trajec[index, 0], 0, MINS[2] - trajec[index, 1],
                      MAXS[2] - trajec[index, 1])
 
@@ -173,5 +176,10 @@ def plot_3d_motion(save_path, kinematic_tree, joints, title, figsize=(10, 10), f
 
     ani = FuncAnimation(fig, update, frames=frame_number, interval=1000 / fps, repeat=False)
 
-    ani.save(save_path, fps=fps)
-    plt.close()
+    try:
+        writer = FFMpegWriter(fps=fps, codec='mpeg4', extra_args=['-pix_fmt', 'yuv420p'])
+        ani.save(save_path, writer=writer)
+    except Exception:
+        alt_path = save_path[:-4] + '.gif' if save_path.endswith('.mp4') else save_path + '.gif'
+        writer = PillowWriter(fps=fps)
+        ani.save(alt_path, writer=writer)

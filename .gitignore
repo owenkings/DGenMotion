@@ -119,3 +119,32 @@ dmypy.json
 
 #Pycharm IDE
 .idea
+
+# 数据集目录
+datasets/
+glove/
+split_data/
+
+# 权重/检查点目录
+checkpoints/
+
+# 生成结果目录
+SinglePose/
+SinglePose_temp/
+generation/
+generation_backup/
+text_file/
+
+# 其他冗余目录/文件
+logs/
+*.pth
+*.ckpt
+*.bin
+*.model
+*.h5
+__pycache__/
+*.pyc
+*.ipynb_checkpoints/
+.vscode/
+.idea/
+*.log

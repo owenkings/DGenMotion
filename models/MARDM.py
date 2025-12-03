@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import numpy as np
 import torch.nn.functional as F
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'CLIP'))
 import clip
 import math
 from functools import partial
@@ -81,18 +83,24 @@ class MARDM(nn.Module):
                 nn.init.ones_(module.weight)
 
     def load_and_freeze_clip(self, clip_version):
-        clip_model, clip_preprocess = clip.load(clip_version, device='cpu', jit=False)
+        import importlib
+        import sys as _sys
+        import os as _os
+        _sys.path.insert(0, _os.path.join(_os.path.dirname(__file__), '..', 'CLIP'))
+        clip_local = importlib.import_module('clip')
+        clip_model, clip_preprocess = clip_local.load(clip_version, 	device='cpu', jit=False)
         assert torch.cuda.is_available()
-        clip.model.convert_weights(clip_model)
+        clip_local.model.convert_weights(clip_model)
 
         clip_model.eval()
         for p in clip_model.parameters():
             p.requires_grad = False
+        self.clip_module = clip_local
         return clip_model
 
     def encode_text(self, raw_text):
         device = next(self.parameters()).device
-        text = clip.tokenize(raw_text, truncate=True).to(device)
+        text = self.clip_module.tokenize(raw_text, truncate=True).to(device)
         feat_clip_text = self.clip_model.encode_text(text).float()
         return feat_clip_text
 
