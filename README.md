@@ -1,52 +1,4 @@
-# Rethinking Diffusion for Text-Driven Human Motion Generation (CVPR 2025)
-![](./MARDM.png)
 
-<p align="center">
-  <a href='https://arxiv.org/abs/2411.16575'>
-    <img src='https://img.shields.io/badge/Arxiv-2411.16575-A42C25?style=flat&logo=arXiv&logoColor=A42C25'>
-  </a>
-  <a href='https://arxiv.org/abs/2411.16575.pdf'>
-    <img src='https://img.shields.io/badge/Paper-PDF-yellow?style=flat&logo=arXiv&logoColor=yellow'>
-  </a>
-  <a href='https://neu-vi.github.io/MARDM/'>
-  <img src='https://img.shields.io/badge/Project-Page-orange?style=flat&logo=Google%20chrome&logoColor=orange'></a>
-  <a href='https://github.com/neu-vi/MARDM'>
-    <img src='https://img.shields.io/badge/GitHub-Code-black?style=flat&logo=github&logoColor=white'></a>
-  <a href="" target='_blank'>
-    <img src="https://visitor-badge.laobi.icu/badge?page_id=neu-vi.MARDM&left_color=gray&right_color=blue">
-  </a>
-</p>
-
-<p align="center">
-<strong>Rethinking Diffusion for Text-Driven Human Motion Generation</strong></h1>
-   <p align="center">
-    <a href='https://cr8br0ze.github.io' target='_blank'>Zichong Meng</a>&emsp;
-    <a href='https://ymingxie.github.io/' target='_blank'>Yiming Xie</a>&emsp;
-    <a href='https://xiaogangpeng.github.io/' target='_blank'>Xiaogang Peng</a>&emsp;
-    <a href='https://show-han.github.io/' target='_blank'>Zeyu Han</a>&emsp;
-    <a href='https://jianghz.me/' target='_blank'>Huaizu Jiang</a>&emsp;
-    <br>
-    Northeastern University 
-    <br>
-    CVPR 2025
-  </p>
-</p>
-
-### [NEW] [ACMDM](https://neu-vi.github.io/ACMDM/): Absolute Coordinates Are All We Need for Text-Driven Motion Generation
-
-### Official Simple & Minimalist PyTorch Implementation
-
-## 📜 TODO List
-- [x] Release the clean codes for implementation.
-- [x] Release the evaluation codes and the pretrained models.
-- [x] Release the simple and minimalist version of codes for implementation.
-- [ ] Release updated version of AE weights and scripts
-
-## 📢 News
-- Will be releasing the updated version of AE weights with more support and scripts soon after cleaning the code.
-
-##  ⚙️ Getting Started
-<details>
   
 ### 1. Conda Environment
 ```bash
@@ -219,33 +171,3 @@ python edit.py --name MARDM_SiT_XL -msec 0.3,0.6 --text_prompt "A man dancing ar
 ```
 </details>
 
-## 🍀 Acknowledgments
-This code is standing on the shoulders of giants, we would like to thank the following contributors that our code is based on:.
-
-Our original raw implementation is heavily based on [T2M](https://github.com/EricGuo5513/text-to-motion),
-[T2M-GPT](https://github.com/Mael-zys/T2M-GPT), [MMM](https://github.com/exitudio/MMM) 
-and [MoMask](https://github.com/EricGuo5513/momask-codes).
-The Diffusion part is primarily based on [DDPM](https://github.com/hojonathanho/diffusion),
-[DiT](https://github.com/facebookresearch/DiT), [SiT](https://github.com/willisma/SiT),
-[MAR](https://github.com/LTH14/mar/), [HOI-Diff](https://github.com/neu-vi/HOI-Diff),
-[InterGen](https://github.com/tr3e/InterGen), [MDM](https://github.com/GuyTevet/motion-diffusion-model),
-[MLD](https://github.com/ChenFengYe/motion-latent-diffusion).
-
-For open sourced version, we decide to restructure (and some rewrite) for a simple and minimalist version of PyTorch code implementation
-that get rids of PyTorch Lighting implicit hooks, outer-space variable utilization and implicit argparse calls.
-We hope our minimalist version implementation can lead to better code comprehension and contribution to the motion generation community. Thank you.
-
-## 🤝 Citation
-If you find this repository useful for your work, please consider citing it as follows:
-```bibtex
-@article{meng2024rethinking,
-      title={Rethinking Diffusion for Text-Driven Human Motion Generation},
-      author={Meng, Zichong and Xie, Yiming and Peng, Xiaogang and Han, Zeyu and Jiang, Huaizu},
-      journal={arXiv preprint arXiv:2411.16575},
-      year={2024}
-    }
-```
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=neu-vi/MARDM&type=Date)](https://star-history.com/#neu-vi/MARDM&Date)
