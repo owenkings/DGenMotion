@@ -77,15 +77,23 @@
 
 ## 🚀 快速开始
 
-### 1. 环境检查
+**⚠️ 重要说明**：
+- 评估辅助脚本位于 `scripts/` 目录
+- 所有命令应从**项目根目录**运行
+- Shell脚本会自动切换到正确的目录
+
+### 1. 环境检查（可选）
 ```bash
-python check_environment.py --dataset_name t2m
+cd /data/tiany/MARDM
+python scripts/check_environment.py --dataset_name t2m
 ```
 
 ### 2. 运行评估
 
 #### 方案A: 分步运行（推荐）
 ```bash
+cd /data/tiany/MARDM
+
 # 步骤1: 评估AE
 python evaluation_AE.py --name AE --dataset_name t2m
 
@@ -96,15 +104,16 @@ python evaluation_MARDM.py --name MARDM_SiT_XL --model "MARDM-SiT-XL" --dataset_
 python evaluation_MARDM.py --name MARDM_DDPM_XL --model "MARDM-DDPM-XL" --dataset_name t2m --cfg 4.5
 
 # 步骤4: 性能分析
-python performance_profiling.py --dataset_name t2m
+python scripts/performance_profiling.py --dataset_name t2m
 
 # 步骤5: 生成报告
-python generate_evaluation_report.py --dataset_name t2m
+python scripts/generate_evaluation_report.py --dataset_name t2m
 ```
 
-#### 方案B: 一键运行
+#### 方案B: 一键运行（最简单）
 ```bash
-bash run_full_evaluation.sh t2m
+cd /data/tiany/MARDM
+bash scripts/run_full_evaluation.sh t2m
 ```
 
 ### 3. 查看结果
