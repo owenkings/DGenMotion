@@ -1,0 +1,227 @@
+{
+  "timestamp": "2025-12-05 17:19:12",
+  "dataset": "t2m",
+  "device": "cuda",
+  "models": {
+    "AE": {
+      "model_type": "AutoEncoder",
+      "parameters_M": 18.834499,
+      "trainable_parameters_M": 18.834499,
+      "sequence_length_tests": {
+        "seq_len_64": {
+          "mean_time_ms": 2.18153715133667,
+          "std_time_ms": 0.4472028485935597,
+          "min_time_ms": 2.114534378051758,
+          "max_time_ms": 6.605863571166992,
+          "median_time_ms": 2.128481864929199,
+          "throughput_samples_per_sec": 458.392376855595
+        },
+        "seq_len_128": {
+          "mean_time_ms": 2.1184778213500977,
+          "std_time_ms": 0.007913731470073081,
+          "min_time_ms": 2.1028518676757812,
+          "max_time_ms": 2.1500587463378906,
+          "median_time_ms": 2.118706703186035,
+          "throughput_samples_per_sec": 472.037039954803
+        },
+        "seq_len_196": {
+          "mean_time_ms": 2.270822525024414,
+          "std_time_ms": 0.28496305717616827,
+          "min_time_ms": 2.2177696228027344,
+          "max_time_ms": 5.10406494140625,
+          "median_time_ms": 2.2426843643188477,
+          "throughput_samples_per_sec": 440.3690684674923
+        }
+      },
+      "batch_size_tests": {
+        "batch_1": {
+          "mean_time_ms": 2.129483222961426,
+          "std_time_ms": 0.05582490970747018,
+          "throughput_samples_per_sec": 469.5975010356371,
+          "time_per_sample_ms": 2.129483222961426,
+          "peak_memory_mb": 200.68115234375
+        },
+        "batch_4": {
+          "mean_time_ms": 2.0598840713500977,
+          "std_time_ms": 0.008940447485946808,
+          "throughput_samples_per_sec": 1941.8568528365306,
+          "time_per_sample_ms": 0.5149710178375244,
+          "peak_memory_mb": 78.8603515625
+        },
+        "batch_8": {
+          "mean_time_ms": 2.155032157897949,
+          "std_time_ms": 0.20417998410979638,
+          "throughput_samples_per_sec": 3712.241587987866,
+          "time_per_sample_ms": 0.26937901973724365,
+          "peak_memory_mb": 84.8720703125
+        },
+        "batch_16": {
+          "mean_time_ms": 2.2475099563598633,
+          "std_time_ms": 0.06414632814049749,
+          "throughput_samples_per_sec": 7118.989597676397,
+          "time_per_sample_ms": 0.14046937227249146,
+          "peak_memory_mb": 91.8955078125
+        },
+        "batch_32": {
+          "mean_time_ms": 2.5954437255859375,
+          "std_time_ms": 0.003241735257713911,
+          "throughput_samples_per_sec": 12329.298333284341,
+          "time_per_sample_ms": 0.08110761642456055,
+          "peak_memory_mb": 109.8486328125
+        }
+      },
+      "memory_usage": {
+        "gpu": {
+          "allocated": 75.84814453125,
+          "reserved": 228.0,
+          "max_allocated": 109.8486328125
+        },
+        "cpu": {
+          "rss": 1158.41796875,
+          "vms": 27211.3046875,
+          "percent": 0.1497820055755746
+        }
+      }
+    },
+    "MARDM_SiT_XL": {
+      "model_type": "MARDM-SiT-XL",
+      "parameters_M": 442.093825,
+      "trainable_parameters_M": 290.816512,
+      "motion_length_tests": {
+        "motion_len_16": {
+          "mean_time_ms": 8581.87495470047,
+          "std_time_ms": 258.5890886531891,
+          "min_time_ms": 8149.321556091309,
+          "max_time_ms": 9082.964897155762,
+          "median_time_ms": 8547.985911369324,
+          "frames": 64,
+          "peak_memory_mb": 1680.22802734375
+        },
+        "motion_len_32": {
+          "mean_time_ms": 10468.997693061829,
+          "std_time_ms": 493.3216622509717,
+          "min_time_ms": 9702.74019241333,
+          "max_time_ms": 11213.820219039917,
+          "median_time_ms": 10476.105093955994,
+          "frames": 128,
+          "peak_memory_mb": 1680.525390625
+        },
+        "motion_len_49": {
+          "mean_time_ms": 13184.457290172577,
+          "std_time_ms": 975.7145137255053,
+          "min_time_ms": 11347.882509231567,
+          "max_time_ms": 15098.47378730774,
+          "median_time_ms": 13311.88154220581,
+          "frames": 196,
+          "peak_memory_mb": 1680.841796875
+        }
+      },
+      "timestep_tests": {
+        "steps_10": {
+          "mean_time_ms": 5807.62654542923,
+          "std_time_ms": 401.5915956580455,
+          "time_per_step_ms": 580.762654542923
+        },
+        "steps_18": {
+          "mean_time_ms": 10288.529908657074,
+          "std_time_ms": 463.59972809182693,
+          "time_per_step_ms": 571.584994925393
+        },
+        "steps_25": {
+          "mean_time_ms": 14392.685055732727,
+          "std_time_ms": 692.4852110916121,
+          "time_per_step_ms": 575.7074022293091
+        },
+        "steps_50": {
+          "mean_time_ms": 28050.211143493652,
+          "std_time_ms": 1798.2174854989314,
+          "time_per_step_ms": 561.004222869873
+        }
+      },
+      "memory_usage": {
+        "gpu": {
+          "allocated": 1552.025390625,
+          "reserved": 1790.0,
+          "max_allocated": 1680.841796875
+        },
+        "cpu": {
+          "rss": 6376.9140625,
+          "vms": 34997.37890625,
+          "percent": 0.8245270735009351
+        }
+      },
+      "default_cfg_scale": 4.5,
+      "default_time_steps": 18
+    },
+    "MARDM_DDPM_XL": {
+      "model_type": "MARDM-DDPM-XL",
+      "parameters_M": 442.093825,
+      "trainable_parameters_M": 290.816512,
+      "motion_length_tests": {
+        "motion_len_16": {
+          "mean_time_ms": 4158.441138267517,
+          "std_time_ms": 9.185508314681124,
+          "min_time_ms": 4148.5748291015625,
+          "max_time_ms": 4184.56244468689,
+          "median_time_ms": 4153.921723365784,
+          "frames": 64,
+          "peak_memory_mb": 1687.97802734375
+        },
+        "motion_len_32": {
+          "mean_time_ms": 4430.371952056885,
+          "std_time_ms": 2.825020227223386,
+          "min_time_ms": 4424.3621826171875,
+          "max_time_ms": 4434.147596359253,
+          "median_time_ms": 4431.027412414551,
+          "frames": 128,
+          "peak_memory_mb": 1688.275390625
+        },
+        "motion_len_49": {
+          "mean_time_ms": 5563.6574149131775,
+          "std_time_ms": 1.4416895728500667,
+          "min_time_ms": 5561.205148696899,
+          "max_time_ms": 5567.062616348267,
+          "median_time_ms": 5563.648581504822,
+          "frames": 196,
+          "peak_memory_mb": 1688.591796875
+        }
+      },
+      "timestep_tests": {
+        "steps_10": {
+          "mean_time_ms": 2533.233392238617,
+          "std_time_ms": 1.3646103526049163,
+          "time_per_step_ms": 253.3233392238617
+        },
+        "steps_18": {
+          "mean_time_ms": 4434.692203998566,
+          "std_time_ms": 2.308581799182389,
+          "time_per_step_ms": 246.37178911103143
+        },
+        "steps_25": {
+          "mean_time_ms": 6243.000841140747,
+          "std_time_ms": 2.5259448826477127,
+          "time_per_step_ms": 249.72003364562988
+        },
+        "steps_50": {
+          "mean_time_ms": 12487.642467021942,
+          "std_time_ms": 9.322412872311926,
+          "time_per_step_ms": 249.75284934043884
+        }
+      },
+      "memory_usage": {
+        "gpu": {
+          "allocated": 1559.775390625,
+          "reserved": 1918.0,
+          "max_allocated": 1688.591796875
+        },
+        "cpu": {
+          "rss": 7468.09765625,
+          "vms": 36221.99609375,
+          "percent": 0.9656157578377284
+        }
+      },
+      "default_cfg_scale": 4.5,
+      "default_time_steps": 18
+    }
+  }
+}

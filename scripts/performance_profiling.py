@@ -13,8 +13,12 @@ from os.path import join as pjoin
 from datetime import datetime
 import argparse
 
-# 添加项目路径
-sys.path.insert(0, os.path.dirname(__file__))
+# 切换到项目根目录（脚本在scripts/目录下）
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+os.chdir(project_root)
+sys.path.insert(0, project_root)
+print(f"工作目录: {os.getcwd()}")
 
 from models.AE import AE_models
 from models.MARDM import MARDM_models

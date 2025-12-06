@@ -12,6 +12,12 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+# 切换到项目根目录（脚本在scripts/目录下）
+script_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(script_dir)
+os.chdir(project_root)
+print(f"工作目录: {os.getcwd()}")
+
 class ComprehensiveEvaluator:
     def __init__(self, dataset_name='t2m'):
         self.dataset_name = dataset_name
