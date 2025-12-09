@@ -184,7 +184,11 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str, default='AE')
-    parser.add_argument('--model', type=str, default='AE_Model')
+    parser.add_argument('--model', type=str, default='AE_Model', 
+                        choices=['AE_Model', 'FSQ_AE_Small', 'FSQ_AE_Medium', 'FSQ_AE_Large', 
+                                 'FSQ_AE_XLarge', 'FSQ_AE_High', 'FSQ_AE_Ultra', 'FSQ_AE_Mega',
+                                 'FSQ_AE_HighDim7', 'FSQ_AE_HighDim8'],
+                        help='Model type: AE_Model (original) or FSQ_AE_* (with FSQ quantization)')
     parser.add_argument('--dataset_dir', type=str, default='./datasets')
     parser.add_argument('--dataset_name', type=str, default='t2m')
     parser.add_argument('--batch_size', default=256, type=int)
@@ -205,6 +209,10 @@ if __name__ == "__main__":
     parser.add_argument('--checkpoints_dir', type=str, default='./checkpoints')
 
     parser.add_argument('--log_every', default=10, type=int)
+    
+    # FSQ 相关参数（仅在使用 FSQ 模型时需要，模型内部已有默认配置）
+    parser.add_argument('--fsq_levels', nargs='+', type=int, default=None,
+                        help='FSQ quantization levels (e.g., 8 5 5 5 5 for 5000 codebook size)')
 
     arg = parser.parse_args()
     main(arg)

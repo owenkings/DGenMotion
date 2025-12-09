@@ -57,7 +57,16 @@ def main(args):
     if torch.cuda.is_available():
         ae=ae.cuda()
 
-    ema_mardm = MARDM_models[args.model](ae_dim=ae.output_emb_width, cond_mode='text')
+    # 判断是否使用 FSQ 模型
+    is_fsq_model = args.model.startswith('FSQ-')
+    is_fsq_ae = args.ae_model.startswith('FSQ_')
+    
+    if is_fsq_model:
+        fsq_dim = ae.fsq_dim if is_fsq_ae else 5
+        ema_mardm = MARDM_models[args.model](ae_dim=ae.output_emb_width, fsq_dim=fsq_dim, cond_mode='text')
+        print(f"Using FSQ-MARDM with fsq_dim={fsq_dim}")
+    else:
+        ema_mardm = MARDM_models[args.model](ae_dim=ae.output_emb_width, cond_mode='text')
     model_dir = pjoin(model_dir, 'latest.tar')
     checkpoint = torch.load(model_dir, map_location='cpu')
     missing_keys2, unexpected_keys2 = ema_mardm.load_state_dict(checkpoint['ema_mardm'], strict=False)
@@ -131,9 +140,17 @@ def main(args):
     for r in range(args.repeat_times):
         print("-->Repeat %d" % r)
         with torch.no_grad():
-            pred_latents = ema_mardm.generate(captions, token_lens, args.time_steps, args.cfg,
-                                              temperature=args.temperature, hard_pseudo_reorder=args.hard_pseudo_reorder)
-            pred_motions = ae.decode(pred_latents)
+            if is_fsq_model and is_fsq_ae:
+                # FSQ 模式：生成 FSQ 坐标，然后解码
+                pred_fsq_coords = ema_mardm.generate(captions, token_lens, args.time_steps, args.cfg,
+                                                     temperature=args.temperature, hard_pseudo_reorder=args.hard_pseudo_reorder,
+                                                     ae=ae)
+                pred_motions = ae.decode_from_fsq(pred_fsq_coords)
+            else:
+                # 原版 MARDM 模式
+                pred_latents = ema_mardm.generate(captions, token_lens, args.time_steps, args.cfg,
+                                                  temperature=args.temperature, hard_pseudo_reorder=args.hard_pseudo_reorder)
+                pred_motions = ae.decode(pred_latents)
             pred_motions = pred_motions.detach().cpu().numpy()
             data = pred_motions * std + mean
 
@@ -152,8 +169,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str, default='MARDM')
     parser.add_argument('--ae_name', type=str, default="AE")
-    parser.add_argument('--ae_model', type=str, default='AE_Model')
-    parser.add_argument('--model', type=str, default='MARDM-SiT-XL')
+    parser.add_argument('--ae_model', type=str, default='AE_Model',
+                        choices=['AE_Model', 'FSQ_AE_Small', 'FSQ_AE_Medium', 'FSQ_AE_Large',
+                                 'FSQ_AE_XLarge', 'FSQ_AE_High', 'FSQ_AE_Ultra', 'FSQ_AE_Mega',
+                                 'FSQ_AE_HighDim7', 'FSQ_AE_HighDim8'],
+                        help='AE model type')
+    parser.add_argument('--model', type=str, default='MARDM-SiT-XL',
+                        choices=['MARDM-DDPM-XL', 'MARDM-SiT-XL', 'FSQ-MARDM-SiT-XL', 'FSQ-MARDM-DDPM-XL'],
+                        help='MARDM model type')
     parser.add_argument('--dataset_name', type=str, default='t2m')
     parser.add_argument('--dataset_dir', type=str, default='./datasets')
 

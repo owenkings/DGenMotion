@@ -130,7 +130,7 @@ def evaluation_ae(out_dir, val_loader, net, writer, ep, eval_wrapper, num_joint,
 def evaluation_mardm(out_dir, val_loader, ema_mardm, ae, writer, ep, best_fid, best_div,
                         best_top1, best_top2, best_top3, best_matching, eval_wrapper, device, clip_score_old, time_steps=None,
                         cond_scale=None, temperature=1, cal_mm=False, train_mean=None, train_std=None, plot_func=None,
-                        draw=True, hard_pseudo_reorder=False):
+                        draw=True, hard_pseudo_reorder=False, is_fsq=False):
 
     ema_mardm.eval()
     ae.eval()
@@ -169,9 +169,17 @@ def evaluation_mardm(out_dir, val_loader, ema_mardm, ae, writer, ep, best_fid, b
             motion_multimodality_batch = []
             batch_clip_score_pred = 0
             for _ in tqdm(range(30)):
-                pred_latents = ema_mardm.generate(clip_text, m_length//4 , time_steps, cond_scale,
-                                                  temperature=temperature, hard_pseudo_reorder=hard_pseudo_reorder)
-                pred_motions = ae.decode(pred_latents)
+                if is_fsq:
+                    # FSQ 模式：生成 FSQ 坐标，然后解码
+                    pred_fsq_coords = ema_mardm.generate(clip_text, m_length//4 , time_steps, cond_scale,
+                                                         temperature=temperature, hard_pseudo_reorder=hard_pseudo_reorder,
+                                                         ae=ae)
+                    pred_motions = ae.decode_from_fsq(pred_fsq_coords)
+                else:
+                    # 原版 MARDM 模式
+                    pred_latents = ema_mardm.generate(clip_text, m_length//4 , time_steps, cond_scale,
+                                                      temperature=temperature, hard_pseudo_reorder=hard_pseudo_reorder)
+                    pred_motions = ae.decode(pred_latents)
                 pred_motions = val_loader.dataset.inv_transform(pred_motions.detach().cpu().numpy(), train_mean, train_std)
                 pred_motions = val_loader.dataset.transform(pred_motions)
                 (et_pred, em_pred), (et_pred_clip, em_pred_clip) = eval_wrapper.get_co_embeddings(word_embeddings, pos_one_hots, sent_len,
@@ -189,10 +197,17 @@ def evaluation_mardm(out_dir, val_loader, ema_mardm, ae, writer, ep, best_fid, b
             clip_score_real += batch_clip_score_pred
 
         else:
-            pred_latents = ema_mardm.generate(clip_text, m_length//4 , time_steps, cond_scale,
-                                              temperature=temperature, hard_pseudo_reorder=hard_pseudo_reorder)
-
-            pred_motions = ae.decode(pred_latents)
+            if is_fsq:
+                # FSQ 模式：生成 FSQ 坐标，然后解码
+                pred_fsq_coords = ema_mardm.generate(clip_text, m_length//4 , time_steps, cond_scale,
+                                                     temperature=temperature, hard_pseudo_reorder=hard_pseudo_reorder,
+                                                     ae=ae)
+                pred_motions = ae.decode_from_fsq(pred_fsq_coords)
+            else:
+                # 原版 MARDM 模式
+                pred_latents = ema_mardm.generate(clip_text, m_length//4 , time_steps, cond_scale,
+                                                  temperature=temperature, hard_pseudo_reorder=hard_pseudo_reorder)
+                pred_motions = ae.decode(pred_latents)
             pred_motions = val_loader.dataset.inv_transform(pred_motions.detach().cpu().numpy(), train_mean, train_std)
             pred_motions = val_loader.dataset.transform(pred_motions)
             (et_pred, em_pred), (et_pred_clip, em_pred_clip) = eval_wrapper.get_co_embeddings(word_embeddings,

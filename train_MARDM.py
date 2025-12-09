@@ -79,7 +79,19 @@ def main(args):
     model_key = 'ae'
     ae.load_state_dict(ckpt[model_key])
 
-    mardm = MARDM_models[args.model](ae_dim=ae.output_emb_width, cond_mode='text')
+    # 判断是否使用 FSQ 模型
+    is_fsq_model = args.model.startswith('FSQ-')
+    is_fsq_ae = args.ae_model.startswith('FSQ_')
+    
+    if is_fsq_model:
+        # FSQ-MARDM 需要 FSQ_AE
+        if not is_fsq_ae:
+            print("WARNING: FSQ-MARDM should be used with FSQ_AE for optimal performance!")
+        fsq_dim = ae.fsq_dim if is_fsq_ae else 5  # 默认 fsq_dim=5
+        mardm = MARDM_models[args.model](ae_dim=ae.output_emb_width, fsq_dim=fsq_dim, cond_mode='text')
+        print(f"Using FSQ-MARDM with fsq_dim={fsq_dim}")
+    else:
+        mardm = MARDM_models[args.model](ae_dim=ae.output_emb_width, cond_mode='text')
     ema_mardm = copy.deepcopy(mardm)
     ema_mardm.eval()
     for param in ema_mardm.parameters():
@@ -145,12 +157,19 @@ def main(args):
             motion = motion.detach().float().to(device)
             m_lens = m_lens.detach().long().to(device)
 
-            latent = ae.encode(motion)
-            m_lens = m_lens // 4
-
-            conds = conds.to(device).float() if torch.is_tensor(conds) else conds
-
-            loss = mardm.forward_loss(latent, conds, m_lens)
+            # 根据模型类型获取不同的编码
+            if is_fsq_model and is_fsq_ae:
+                # FSQ 模式：获取 latent 和 FSQ 目标
+                latent, fsq_target = ae.encode_with_fsq(motion)
+                m_lens = m_lens // 4
+                conds = conds.to(device).float() if torch.is_tensor(conds) else conds
+                loss = mardm.forward_loss(latent, fsq_target, conds, m_lens)
+            else:
+                # 原版 MARDM 模式
+                latent = ae.encode(motion)
+                m_lens = m_lens // 4
+                conds = conds.to(device).float() if torch.is_tensor(conds) else conds
+                loss = mardm.forward_loss(latent, conds, m_lens)
 
             optimizer.zero_grad()
             loss.backward()
@@ -185,12 +204,17 @@ def main(args):
                 motion = motion.detach().float().to(device)
                 m_lens = m_lens.detach().long().to(device)
 
-                latent = ae.encode(motion)
-                m_lens = m_lens // 4
-
-                conds = conds.to(device).float() if torch.is_tensor(conds) else conds
-
-                loss = mardm.forward_loss(latent, conds, m_lens)
+                # 根据模型类型获取不同的编码
+                if is_fsq_model and is_fsq_ae:
+                    latent, fsq_target = ae.encode_with_fsq(motion)
+                    m_lens = m_lens // 4
+                    conds = conds.to(device).float() if torch.is_tensor(conds) else conds
+                    loss = mardm.forward_loss(latent, fsq_target, conds, m_lens)
+                else:
+                    latent = ae.encode(motion)
+                    m_lens = m_lens // 4
+                    conds = conds.to(device).float() if torch.is_tensor(conds) else conds
+                    loss = mardm.forward_loss(latent, conds, m_lens)
                 val_loss.append(loss.item())
 
         print(f"Validation loss:{np.mean(val_loss):.3f}")
@@ -202,7 +226,8 @@ def main(args):
             best_fid, best_div, best_top1, best_top2, best_top3, best_matching, _, clip_score, writer, save_now= evaluation_mardm(
                 model_dir, eval_loader, ema_mardm, ae, logger, epoch-1, best_fid=best_fid, clip_score_old=clip_score,
                 best_div=best_div, best_top1=best_top1, best_top2=best_top2, best_top3=best_top3,
-                best_matching=best_matching, eval_wrapper=eval_wrapper, device=device, train_mean=mean, train_std=std)
+                best_matching=best_matching, eval_wrapper=eval_wrapper, device=device, train_mean=mean, train_std=std,
+                is_fsq=is_fsq_model)
             if save_now:
                 save(pjoin(model_dir, 'net_best_fid.tar'), epoch-1, mardm, optimizer, scheduler,
                      it, 'mardm', ema_mardm=ema_mardm)
@@ -212,8 +237,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str, default='MARDM')
     parser.add_argument('--ae_name', type=str, default="AE")
-    parser.add_argument('--ae_model', type=str, default='AE_Model')
-    parser.add_argument('--model', type=str, default='MARDM-SiT-XL')
+    parser.add_argument('--ae_model', type=str, default='AE_Model',
+                        choices=['AE_Model', 'FSQ_AE_Small', 'FSQ_AE_Medium', 'FSQ_AE_Large',
+                                 'FSQ_AE_XLarge', 'FSQ_AE_High', 'FSQ_AE_Ultra', 'FSQ_AE_Mega',
+                                 'FSQ_AE_HighDim7', 'FSQ_AE_HighDim8'],
+                        help='AE model type')
+    parser.add_argument('--model', type=str, default='MARDM-SiT-XL',
+                        choices=['MARDM-DDPM-XL', 'MARDM-SiT-XL', 'FSQ-MARDM-SiT-XL', 'FSQ-MARDM-DDPM-XL'],
+                        help='MARDM model type')
     parser.add_argument('--dataset_name', type=str, default='t2m')
     parser.add_argument('--dataset_dir', type=str, default='./datasets')
     parser.add_argument("--max_motion_length", type=int, default=196)

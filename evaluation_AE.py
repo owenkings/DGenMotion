@@ -57,6 +57,16 @@ def main(args):
     ae.load_state_dict(checkpoint['ae'])
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     eval_wrapper = Evaluators(args.dataset_name, device=device)
+    
+    # 打印模型信息
+    is_fsq_ae = args.model.startswith('FSQ_')
+    if is_fsq_ae:
+        print(f"Evaluating FSQ-AE model: {args.model}")
+        print(f"  FSQ levels: {ae.fsq_levels}")
+        print(f"  FSQ dim: {ae.fsq_dim}")
+        print(f"  Codebook size: {ae.fsq.codebook_size}")
+    else:
+        print(f"Evaluating standard AE model: {args.model}")
     #################################################################################
     #                                  Evaluation Loop                              #
     #################################################################################
@@ -114,7 +124,11 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--name', type=str, default='AE')
-    parser.add_argument('--model', type=str, default='AE_Model')
+    parser.add_argument('--model', type=str, default='AE_Model',
+                        choices=['AE_Model', 'FSQ_AE_Small', 'FSQ_AE_Medium', 'FSQ_AE_Large',
+                                 'FSQ_AE_XLarge', 'FSQ_AE_High', 'FSQ_AE_Ultra', 'FSQ_AE_Mega',
+                                 'FSQ_AE_HighDim7', 'FSQ_AE_HighDim8'],
+                        help='AE model type (original or FSQ variants)')
     parser.add_argument('--dataset_dir', type=str, default='./datasets')
     parser.add_argument('--dataset_name', type=str, default='t2m')
 
