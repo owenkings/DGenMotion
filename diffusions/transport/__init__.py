@@ -8,13 +8,15 @@ def create_transport(
     sample_eps=None,
 ):
     """function for creating Transport object
-    **Note**: model prediction defaults to velocity
+    
     Args:
     - path_type: type of path to use; default to linear
-    - learn_score: set model prediction to score
-    - learn_noise: set model prediction to noise
-    - velocity_weighted: weight loss by velocity weight
-    - likelihood_weighted: weight loss by likelihood weight
+    - prediction: what the model predicts
+        - "velocity": predict v = x_1 - x_0 (default, SiT style)
+        - "noise": predict noise epsilon
+        - "score": predict score
+        - "x" or "data": predict clean data x_1 (JiT x-prediction) ⭐
+    - loss_weight: "velocity" or "likelihood" weighting
     - train_eps: small epsilon for avoiding instability during training
     - sample_eps: small epsilon for avoiding instability during sampling
     """
@@ -23,6 +25,9 @@ def create_transport(
         model_type = ModelType.NOISE
     elif prediction == "score":
         model_type = ModelType.SCORE
+    elif prediction in ["x", "data", "x_pred", "x-pred", "x_prediction"]:
+        # ⭐ JiT x-prediction: 直接预测干净数据
+        model_type = ModelType.DATA
     else:
         model_type = ModelType.VELOCITY
 

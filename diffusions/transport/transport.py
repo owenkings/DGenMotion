@@ -16,6 +16,7 @@ class ModelType(enum.Enum):
     NOISE = enum.auto()  # the model predicts epsilon
     SCORE = enum.auto()  # the model predicts \nabla \log p(x)
     VELOCITY = enum.auto()  # the model predicts v(x)
+    DATA = enum.auto()  # the model predicts x_1 (clean data) - JiT x-prediction
 
 class PathType(enum.Enum):
     """
@@ -136,9 +137,18 @@ class Transport:
 
         terms = {}
         terms['pred'] = model_output
+        
         if self.model_type == ModelType.VELOCITY:
+            # v-prediction: 预测 velocity u_t = x_1 - x_0
             terms['loss'] = mean_flat(((model_output - ut) ** 2))
+        
+        elif self.model_type == ModelType.DATA:
+            # ⭐ x-prediction (JiT): 直接预测干净数据 x_1
+            # 这是 FSQ 空间最适合的预测目标
+            terms['loss'] = mean_flat(((model_output - x1) ** 2))
+        
         else: 
+            # noise/score prediction
             _, drift_var = self.path_sampler.compute_drift(xt, t)
             sigma_t, _ = self.path_sampler.compute_sigma_t(path.expand_t_like_x(t, xt))
             if self.loss_type in [WeightType.VELOCITY]:
@@ -177,11 +187,31 @@ class Transport:
         def velocity_ode(x, t, model, **model_kwargs):
             model_output = model(x, t, **model_kwargs)
             return model_output
+        
+        def data_ode(x, t, model, **model_kwargs):
+            """
+            x-prediction ODE: 将模型预测的 x_1 转换为 velocity
+            
+            数学推导 (Linear path):
+            - x_t = t * x_1 + (1-t) * x_0
+            - dx_t/dt = x_1 - x_0 = velocity
+            - 从模型预测的 x̂_1 和当前 x_t 可以估算:
+              velocity ≈ (x̂_1 - x_t) / (1 - t)  (当 t < 1)
+            """
+            model_output = model(x, t, **model_kwargs)  # 预测 x_1
+            # 将 x-prediction 转换为 velocity
+            t_expand = path.expand_t_like_x(t, x)
+            # 避免 t=1 时的除零问题
+            one_minus_t = th.clamp(1 - t_expand, min=1e-3)
+            velocity = (model_output - x) / one_minus_t
+            return velocity
 
         if self.model_type == ModelType.NOISE:
             drift_fn = noise_ode
         elif self.model_type == ModelType.SCORE:
             drift_fn = score_ode
+        elif self.model_type == ModelType.DATA:
+            drift_fn = data_ode
         else:
             drift_fn = velocity_ode
         
@@ -204,6 +234,15 @@ class Transport:
             score_fn = lambda x, t, model, **kwagrs: model(x, t, **kwagrs)
         elif self.model_type == ModelType.VELOCITY:
             score_fn = lambda x, t, model, **kwargs: self.path_sampler.get_score_from_velocity(model(x, t, **kwargs), x, t)
+        elif self.model_type == ModelType.DATA:
+            # x-prediction: 先转换为 velocity，再转换为 score
+            def data_to_score(x, t, model, **kwargs):
+                x1_pred = model(x, t, **kwargs)
+                t_expand = path.expand_t_like_x(t, x)
+                one_minus_t = th.clamp(1 - t_expand, min=1e-3)
+                velocity = (x1_pred - x) / one_minus_t
+                return self.path_sampler.get_score_from_velocity(velocity, x, t)
+            score_fn = data_to_score
         else:
             raise NotImplementedError()
         
