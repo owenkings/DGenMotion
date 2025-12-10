@@ -1,6 +1,7 @@
 import torch
 import math
 import time
+import os
 
 #################################################################################
 #                                  Util Functions                               #
@@ -44,6 +45,9 @@ def update_lr_warm_up(nb_iter, warm_up_iter, optimizer, lr):
 
 
 def save(file_name, ep, model, optimizer, scheduler, total_it, name, ema_mardm=None):
+    # 🔧 修复：确保保存目录存在
+    os.makedirs(os.path.dirname(file_name), exist_ok=True)
+    
     state = {
         name: model.state_dict(),
         f"opt_{name}": optimizer.state_dict(),
