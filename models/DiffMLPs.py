@@ -97,8 +97,17 @@ def diffmlps_ddpm_xl(**kwargs):
 def diffmlps_sit_xl(**kwargs):
     return DiffMLPs_SiT(depth=16, width=1792, **kwargs)
 
+# 导入 DiffTransformer 模型
+from models.DiffTransformer import DiffTransformer_models
+
 DiffMLPs_models = {
-    'DDPM-XL': diffmlps_ddpm_xl, 'SiT-XL': diffmlps_sit_xl,
+    'DDPM-XL': diffmlps_ddpm_xl, 
+    'SiT-XL': diffmlps_sit_xl,
+    # DiffTransformer 模型 (JiT-style)
+    'DiffTransformer-S': DiffTransformer_models['DiffTransformer-S'],
+    'DiffTransformer-B': DiffTransformer_models['DiffTransformer-B'],
+    'DiffTransformer-L': DiffTransformer_models['DiffTransformer-L'],
+    'DiffTransformer-XL': DiffTransformer_models['DiffTransformer-XL'],
 }
 
 #################################################################################

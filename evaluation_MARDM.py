@@ -149,7 +149,15 @@ if __name__ == "__main__":
                                  'FSQ_AE_HighDim7', 'FSQ_AE_HighDim8'],
                         help='AE model type')
     parser.add_argument('--model', type=str, default='MARDM-SiT-XL',
-                        choices=['MARDM-DDPM-XL', 'MARDM-SiT-XL', 'FSQ-MARDM-SiT-XL', 'FSQ-MARDM-DDPM-XL'],
+                        choices=[
+                            # 原版 MARDM
+                            'MARDM-DDPM-XL', 'MARDM-SiT-XL', 
+                            # FSQ-MARDM with MLP
+                            'FSQ-MARDM-SiT-XL', 'FSQ-MARDM-DDPM-XL',
+                            # FSQ-MARDM with DiffTransformer (JiT-style)
+                            'FSQ-MARDM-DiT-S', 'FSQ-MARDM-DiT-B', 
+                            'FSQ-MARDM-DiT-L', 'FSQ-MARDM-DiT-XL'
+                        ],
                         help='MARDM model type')
     parser.add_argument('--dataset_name', type=str, default='t2m')
     parser.add_argument('--dataset_dir', type=str, default='./datasets')
