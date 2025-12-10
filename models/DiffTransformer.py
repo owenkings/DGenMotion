@@ -631,14 +631,14 @@ class DiffTransformer_XPred(nn.Module):
 
 
 #################################################################################
-#                   DiffTransformer with v-prediction (SiT style)                #
+#              DiffTransformer with Transport-based Training                     #
 #################################################################################
 
 class DiffTransformer_SiT(nn.Module):
     """
     DiffTransformer with v-prediction (SiT/Flow Matching)
     
-    保留原版 velocity prediction 作为对照组
+    使用 transport.py 的 velocity prediction 训练
     
     与 DiffMLPs_SiT 接口保持一致
     """
@@ -668,7 +668,7 @@ class DiffTransformer_SiT(nn.Module):
         )
         
         # SiT Transport (velocity prediction)
-        self.train_diffusion = create_transport()
+        self.train_diffusion = create_transport(prediction="velocity")
         self.gen_diffusion = Sampler(self.train_diffusion)
 
     def forward(self, target: torch.Tensor, z: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
@@ -689,6 +689,80 @@ class DiffTransformer_SiT(nn.Module):
         cfg: float = 1.0
     ) -> torch.Tensor:
         """采样 - velocity prediction ODE"""
+        device = z.device
+        
+        if cfg != 1.0:
+            noise = torch.randn(z.shape[0] // 2, self.in_channels).to(device)
+            noise = torch.cat([noise, noise], dim=0)
+            model_kwargs = dict(c=z, cfg_scale=cfg)
+            model_fn = self.net.forward_with_cfg
+        else:
+            noise = torch.randn(z.shape[0], self.in_channels).to(device)
+            model_kwargs = dict(c=z)
+            model_fn = self.net.forward
+        
+        sample_fn = self.gen_diffusion.sample_ode()
+        sampled_token_latent = sample_fn(noise, model_fn, **model_kwargs)[-1]
+        
+        return sampled_token_latent
+
+
+class DiffTransformer_Transport_XPred(nn.Module):
+    """
+    DiffTransformer with Transport-based x-prediction
+    
+    使用修改后的 transport.py 支持的 x-prediction 训练
+    这是一个替代方案，与 DiffTransformer_XPred 功能相同
+    
+    优点：与 transport.py 框架一致
+    缺点：采样时需要转换 x-pred -> velocity
+    """
+    
+    def __init__(
+        self,
+        target_channels: int,
+        z_channels: int,
+        hidden_size: int = 512,
+        depth: int = 8,
+        num_heads: int = 8,
+        **kwargs
+    ):
+        super().__init__()
+        
+        from diffusions.transport import create_transport, Sampler
+        
+        self.in_channels = target_channels
+        self.net = DiffTransformer(
+            target_channels=target_channels,
+            z_channels=z_channels,
+            hidden_size=hidden_size,
+            depth=depth,
+            num_heads=num_heads,
+            **kwargs
+        )
+        
+        # ⭐ 使用 x-prediction (JiT 核心)
+        self.train_diffusion = create_transport(prediction="x")
+        self.gen_diffusion = Sampler(self.train_diffusion)
+
+    def forward(self, target: torch.Tensor, z: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+        """训练前向 - x-prediction 损失 (通过 transport.py)"""
+        model_kwargs = dict(c=z)
+        loss_dict = self.train_diffusion.training_losses(self.net, target, model_kwargs)
+        loss = loss_dict["loss"]
+        
+        if mask is not None:
+            loss = (loss * mask).sum() / mask.sum()
+        
+        return loss.mean()
+
+    def sample(
+        self, 
+        z: torch.Tensor, 
+        temperature: float = 1.0, 
+        cfg: float = 1.0
+    ) -> torch.Tensor:
+        """采样 - 使用 ODE (x-pred 自动转换为 velocity)"""
         device = z.device
         
         if cfg != 1.0:
