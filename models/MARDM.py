@@ -814,7 +814,7 @@ def mardm_sit_xl(**kwargs):
     return MARDM(latent_dim=1024, ff_size=4096, num_layers=1, num_heads=16, dropout=0.2, clip_dim=512,
                  diffmlps_model="SiT-XL", diffmlps_batch_mul=4, cond_drop_prob=0.1, **kwargs)
 
-# FSQ-MARDM 模型
+# FSQ-MARDM 模型 (原版 MLP-based)
 def fsq_mardm_sit_xl(fsq_dim=5, **kwargs):
     """FSQ-MARDM with SiT-XL DiffMLP"""
     return FSQ_MARDM(latent_dim=1024, ff_size=4096, num_layers=1, num_heads=16, dropout=0.2, clip_dim=512,
@@ -827,11 +827,55 @@ def fsq_mardm_ddpm_xl(fsq_dim=5, **kwargs):
                      diffmlps_model="DDPM-XL", diffmlps_batch_mul=4, cond_drop_prob=0.1,
                      fsq_dim=fsq_dim, **kwargs)
 
+# =========================================================================
+# FSQ-MARDM with DiffTransformer (JiT-style) - 新优化版本
+# =========================================================================
+def fsq_mardm_dit_s(fsq_dim=5, **kwargs):
+    """FSQ-MARDM with DiffTransformer-S (Small, ~10M params)"""
+    return FSQ_MARDM(latent_dim=1024, ff_size=4096, num_layers=1, num_heads=16, dropout=0.2, clip_dim=512,
+                     diffmlps_model="DiffTransformer-S", diffmlps_batch_mul=4, cond_drop_prob=0.1,
+                     fsq_dim=fsq_dim, **kwargs)
+
+def fsq_mardm_dit_b(fsq_dim=5, **kwargs):
+    """FSQ-MARDM with DiffTransformer-B (Base, ~30M params)"""
+    return FSQ_MARDM(latent_dim=1024, ff_size=4096, num_layers=1, num_heads=16, dropout=0.2, clip_dim=512,
+                     diffmlps_model="DiffTransformer-B", diffmlps_batch_mul=4, cond_drop_prob=0.1,
+                     fsq_dim=fsq_dim, **kwargs)
+
+def fsq_mardm_dit_l(fsq_dim=5, **kwargs):
+    """FSQ-MARDM with DiffTransformer-L (Large, ~90M params)"""
+    return FSQ_MARDM(latent_dim=1024, ff_size=4096, num_layers=1, num_heads=16, dropout=0.2, clip_dim=512,
+                     diffmlps_model="DiffTransformer-L", diffmlps_batch_mul=4, cond_drop_prob=0.1,
+                     fsq_dim=fsq_dim, **kwargs)
+
+def fsq_mardm_dit_xl(fsq_dim=5, **kwargs):
+    """FSQ-MARDM with DiffTransformer-XL (Extra Large, ~150M params)
+    
+    推荐配置：用于与原版 FSQ-MARDM-SiT-XL 对比
+    DiffTransformer 带来的优势：
+    - 全局时序注意力 (消除帧间不协调)
+    - 保持序列结构 (不做 flatten)
+    - adaLN 调制 (更好的条件注入)
+    """
+    return FSQ_MARDM(latent_dim=1024, ff_size=4096, num_layers=1, num_heads=16, dropout=0.2, clip_dim=512,
+                     diffmlps_model="DiffTransformer-XL", diffmlps_batch_mul=4, cond_drop_prob=0.1,
+                     fsq_dim=fsq_dim, **kwargs)
+
+
 MARDM_models = {
+    # 原版 MARDM (连续空间)
     'MARDM-DDPM-XL': mardm_ddpm_xl, 
     'MARDM-SiT-XL': mardm_sit_xl,
+    
+    # FSQ-MARDM with MLP (原版)
     'FSQ-MARDM-SiT-XL': fsq_mardm_sit_xl,
     'FSQ-MARDM-DDPM-XL': fsq_mardm_ddpm_xl,
+    
+    # FSQ-MARDM with DiffTransformer (JiT-style, 新优化版)
+    'FSQ-MARDM-DiT-S': fsq_mardm_dit_s,
+    'FSQ-MARDM-DiT-B': fsq_mardm_dit_b,
+    'FSQ-MARDM-DiT-L': fsq_mardm_dit_l,
+    'FSQ-MARDM-DiT-XL': fsq_mardm_dit_xl,
 }
 
 #################################################################################
