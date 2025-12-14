@@ -121,8 +121,10 @@ def main(args):
     epoch = 0
     it = 0
     if args.is_continue:
-        model_dir = pjoin(model_dir, 'latest.tar')
-        checkpoint = torch.load(model_dir, map_location=device)
+        ckpt_path = pjoin(model_dir, 'latest.tar')  # 使用新变量 ckpt_path
+        checkpoint = torch.load(ckpt_path, map_location=device)
+        # model_dir = pjoin(model_dir, 'latest.tar')
+        # checkpoint = torch.load(model_dir, map_location=device)
         missing_keys, unexpected_keys = mardm.load_state_dict(checkpoint['mardm'], strict=False)
         missing_keys2, unexpected_keys2 = ema_mardm.load_state_dict(checkpoint['ema_mardm'], strict=False)
         assert len(unexpected_keys) == 0
