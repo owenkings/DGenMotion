@@ -55,6 +55,21 @@ coverage.xml
 
 # Django stuff:
 *.log
+# Local experiment assets, checkpoints, and CPU-test outputs
+/runs/
+/assets/
+/run_configs/
+/CLIP/
+/body_models/
+/experiments/kit_epoch_20260929/code/
+/experiments/kit_epoch_20260929/checks/
+*.pt
+*.safetensors
+.env.*
+*.pem
+*.key
+id_ed25519
+id_rsa
 local_settings.py
 db.sqlite3
 
