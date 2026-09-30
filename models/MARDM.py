@@ -10,6 +10,7 @@ from functools import partial
 from typing import List, Optional, Tuple
 from timm.models.vision_transformer import Mlp
 from models.DiffMLPs import DiffMLPs_models
+from models.JointDiffusion import JointSequenceXPred
 from utils.eval_utils import eval_decorator
 from utils.train_utils import lengths_to_mask, uniform, get_mask_subset_prob, cosine_schedule
 
@@ -458,7 +459,11 @@ class FSQ_MARDM(nn.Module):
         # --------------------------------------------------------------------------
         # DiffMLPs (预测目标改为 fsq_dim)
         print(f'Loading DiffMLPs for FSQ (target_dim={fsq_dim})...')
-        self.DiffMLPs = DiffMLPs_models[diffmlps_model](target_channels=self.fsq_dim, z_channels=self.latent_dim)
+        self.sequence_diffusion = (diffmlps_model == 'JointSequence-XPred')
+        if self.sequence_diffusion:
+            self.DiffMLPs = JointSequenceXPred(target_channels=self.fsq_dim, z_channels=self.latent_dim, hidden_size=512, depth=8, num_heads=8, max_seq_len=64, num_sampling_steps=12)
+        else:
+            self.DiffMLPs = DiffMLPs_models[diffmlps_model](target_channels=self.fsq_dim, z_channels=self.latent_dim)
         self.diffmlps_batch_mul = diffmlps_batch_mul
 
     def __init_weights(self, module):
@@ -592,18 +597,25 @@ class FSQ_MARDM(nn.Module):
 
         z = self.forward(input, cond_vector, ~non_pad_mask, force_mask)
         
-        # DiffMLPs 预测 FSQ 坐标
-        target = target.reshape(b * l, -1).repeat(self.diffmlps_batch_mul, 1)  # [B*L*mul, d]
-        z = z.reshape(b * l, -1).repeat(self.diffmlps_batch_mul, 1)  # [B*L*mul, latent_dim]
+        if self.sequence_diffusion:
+            return self.DiffMLPs(target=target, z=z, padding_mask=~non_pad_mask, mask=mask)
+        target = target.reshape(b * l, -1).repeat(self.diffmlps_batch_mul, 1)
+        z = z.reshape(b * l, -1).repeat(self.diffmlps_batch_mul, 1)
         mask = mask.reshape(b * l).repeat(self.diffmlps_batch_mul)
-        target = target[mask]
-        z = z[mask]
-        loss = self.DiffMLPs(z=z, target=target)
+        target = target[mask]; z = z[mask]
+        return self.DiffMLPs(z=z, target=target)
 
-        return loss
-
-    def forward_with_CFG(self, latents, cond_vector, padding_mask, cfg=3, mask=None, force_mask=False, hard_pseudo_reorder=False):
+    def forward_with_CFG(self, latents, cond_vector, padding_mask, cfg=3, mask=None, force_mask=False, hard_pseudo_reorder=False, fsq_coords=None):
         """带 Classifier-Free Guidance 的前向"""
+        if getattr(self, 'sequence_diffusion', False) and not force_mask:
+            mmask = mask if hard_pseudo_reorder else None
+            zc = self.forward(latents, cond_vector, padding_mask, mask=mmask)
+            if cfg != 1:
+                zu = self.forward(latents, cond_vector, padding_mask, force_mask=True, mask=mmask)
+                zc = torch.cat([zc, zu], dim=0); pm = torch.cat([padding_mask,padding_mask],0)
+                mm = None if mask is None else torch.cat([mask,mask],0)
+            else: pm, mm = padding_mask, mask
+            return self.DiffMLPs.sample(zc, padding_mask=pm, mask=mm, current=fsq_coords, cfg=cfg)
         if hard_pseudo_reorder:
             reorder_mask = mask.clone()
         else:
@@ -695,7 +707,7 @@ class FSQ_MARDM(nn.Module):
             # 生成 FSQ 坐标
             pred_fsq = self.forward_with_CFG(latents, cond_vector=cond_vector, padding_mask=padding_mask,
                                              cfg=cond_scale, mask=is_mask, force_mask=force_mask, 
-                                             hard_pseudo_reorder=hard_pseudo_reorder)
+                                             hard_pseudo_reorder=hard_pseudo_reorder, fsq_coords=fsq_coords)
             
             fsq_coords = torch.where(is_mask.unsqueeze(-1), pred_fsq, fsq_coords)
             
@@ -781,7 +793,7 @@ class FSQ_MARDM(nn.Module):
             latents = torch.where(is_mask.unsqueeze(-1), self.mask_latent.repeat(latents.shape[0], latents.shape[1], 1), latents)
             pred_fsq = self.forward_with_CFG(latents, cond_vector=cond_vector, padding_mask=padding_mask,
                                              cfg=cond_scale, mask=is_mask, force_mask=force_mask, 
-                                             hard_pseudo_reorder=hard_pseudo_reorder)
+                                             hard_pseudo_reorder=hard_pseudo_reorder, fsq_coords=fsq_coords)
             
             fsq_coords = torch.where(is_mask.unsqueeze(-1), pred_fsq, fsq_coords)
             
@@ -848,6 +860,9 @@ def fsq_mardm_dit_l(fsq_dim=5, **kwargs):
                      diffmlps_model="DiffTransformer-L", diffmlps_batch_mul=4, cond_drop_prob=0.1,
                      fsq_dim=fsq_dim, **kwargs)
 
+def fsq_mardm_joint_xl(fsq_dim=5, **kwargs):
+    return FSQ_MARDM(latent_dim=1024, ff_size=4096, num_layers=1, num_heads=16, dropout=0.2, clip_dim=512, diffmlps_model='JointSequence-XPred', diffmlps_batch_mul=1, cond_drop_prob=0.1, fsq_dim=fsq_dim, **kwargs)
+
 def fsq_mardm_dit_xl(fsq_dim=5, **kwargs):
     """FSQ-MARDM with DiffTransformer-XL (Extra Large, ~150M params)
     
@@ -876,6 +891,7 @@ MARDM_models = {
     'FSQ-MARDM-DiT-B': fsq_mardm_dit_b,
     'FSQ-MARDM-DiT-L': fsq_mardm_dit_l,
     'FSQ-MARDM-DiT-XL': fsq_mardm_dit_xl,
+    'FSQ-MARDM-Joint-XL': fsq_mardm_joint_xl,
 }
 
 #################################################################################

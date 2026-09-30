@@ -1,5 +1,28 @@
 
   
+# DGenMotion
+
+## KIT FSQ / JiT / APG experiments (2026-09-30)
+
+The current experiment implementation is documented in
+[experiments/kit_epoch_20260929/README.md](experiments/kit_epoch_20260929/README.md).
+It trains two generators from scratch with a shared frozen KIT FSQ autoencoder,
+evaluates after every epoch, and evaluates direct APG on the same JiT EMA weights.
+Latest recovery checkpoints and independent CFG/APG best checkpoints are retained.
+FSQ, JiT-style clean prediction, and APG are adaptations of existing methods;
+the code does not establish that this combination is an original algorithm.
+
+[KIT progress snapshot](doc/KIT_PROGRESS_20260930.md) records incomplete validation
+results, not final test results. The APG benefit observed on HumanML must not be
+assumed to transfer to KIT. The registered Joint denoiser is a separate historical
+experiment and is not used by these two KIT training configurations.
+
+The instructions below are historical setup documentation. `environment.yml`
+is a recovered Linux environment export, not a verified clean-install lock for
+the current experiment. Follow the experiment README for its additional assets,
+official OpenAI CLIP dependency, checks, and launch commands. Preserve existing
+datasets and checkpoints when preparing an environment.
+
 ### 1. Conda Environment
 ```bash
 conda env create -f environment.yml
@@ -11,8 +34,7 @@ We test our code on Python 3.10.13, PyTorch 2.2.0, and CUDA 12.1
 
 #### Download Evaluation Models
 ```bash
-rm -rf checkpoints
-mkdir checkpoints
+mkdir -p checkpoints
 cd checkpoints
 mkdir t2m
 mkdir kit
@@ -41,7 +63,7 @@ cd ../../
 
 #### Download GloVe
 ```bash
-rm -rf glove
+# Preserve any existing glove directory.
 echo -e "Downloading glove (in use only by the evaluators)"
 gdown --fuzzy https://drive.google.com/file/d/1cmXKUT31pqd7_XpJAiWEo1K81TMYHA5n/view?usp=sharing
 

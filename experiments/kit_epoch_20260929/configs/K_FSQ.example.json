@@ -1,0 +1,142 @@
+{
+  "dataset": "kit",
+  "paths": {
+    "ae_checkpoint": "/repro/asset-workspace/runs/paper_controls_20260920/KIT_tokenizer/best.pt",
+    "ae_train_split": "/repro/asset-workspace/runs/paper_controls_20260920/assets/kit_train_ae_available.txt",
+    "ae_val_split": "/repro/asset-workspace/runs/paper_controls_20260920/assets/kit_val_ae_available.txt",
+    "code_root": "/repro/DGenMotion/experiments/kit_epoch_20260929/code",
+    "data_root": "/repro/asset-workspace/datasets/KIT-ML",
+    "eval_mean": "/repro/asset-workspace/utils/eval_mean_std/kit/eval_mean.npy",
+    "eval_std": "/repro/asset-workspace/utils/eval_mean_std/kit/eval_std.npy",
+    "evaluator": "/repro/asset-workspace/pretrained/kit/text_mot_match/model/finest.tar",
+    "evaluator_clip": "/repro/asset-workspace/pretrained/kit/text_mot_match_clip/model/finest.tar",
+    "test_split": "/repro/asset-workspace/runs/paper_controls_20260920/assets/kit_test_available.txt",
+    "train_mean": "/repro/asset-workspace/datasets/KIT-ML/Mean.npy",
+    "train_split": "/repro/asset-workspace/runs/paper_controls_20260920/assets/kit_train_available.txt",
+    "train_std": "/repro/asset-workspace/datasets/KIT-ML/Std.npy",
+    "val_split": "/repro/asset-workspace/runs/paper_controls_20260920/assets/kit_val_available.txt"
+  },
+  "hashes": {
+    "ae_checkpoint": "2daf5f8aa97a533e8a75501051750d0e572775a88ff056fc35a9f64d43042d39",
+    "ae_train_split": "6739e58359e9e9d6e1f03e3557bb3bbbd038bfe485c1b31117b000ca9f604c31",
+    "ae_val_split": "1d3bee66f33d8bef65868c099c10e51101bf5a77c40412438c995755cd7159ac",
+    "eval_mean": "fe14a5aa5f52d5418a9746f41eefdda6301d07ad387ec771732f078a151d4ab9",
+    "eval_std": "4895070bb8d8ad67a12955b98e93fc4701b3a56253ad48e6891aea9f28ccc434",
+    "evaluator": "ac0daf4d7fde22f63503cb5b0389b00adbfe8243bd5929b1214630d79036b89a",
+    "evaluator_clip": "8f7ed2943087eb628d76cfceac2fc283335a310bebf4be13997ee9b2912ef3b9",
+    "test_split": "0e6fd0ee0a0a9a24da1681da56a22d86d95b78c41e59b0f0fa9bd984dbf281db",
+    "train_mean": "5948b07442993b972be881a19f5ea59f8443104baa259d7752d6e6c9d756f8ed",
+    "train_split": "39a1fa2af97ed4ff4435054559669eed1af5ad7fe7622a199a410d9a0d0b1854",
+    "train_std": "f0a613e35f8b33de1404760d7478ec5b14d5da592498e17c1bc2244bba1f1eec",
+    "val_split": "1d3bee66f33d8bef65868c099c10e51101bf5a77c40412438c995755cd7159ac"
+  },
+  "model": {
+    "ae": "FSQ_AE_High",
+    "ae_model": "FSQ_AE_High",
+    "fsq_dim": 6,
+    "fsq_levels": [
+      8,
+      8,
+      8,
+      5,
+      5,
+      5
+    ],
+    "generator": "FSQ-MARDM-SiT-XL",
+    "generator_model": "FSQ-MARDM-SiT-XL",
+    "input_width": 64,
+    "joints": 21,
+    "levels": [
+      8,
+      8,
+      8,
+      5,
+      5,
+      5
+    ],
+    "lift_width": 512,
+    "name": "FSQ-MARDM-SiT-XL"
+  },
+  "sampling": {
+    "apg": {
+      "beta": -0.5,
+      "eta": 0.0,
+      "norm_threshold": 0.0
+    },
+    "cfg": 2.5,
+    "inner_steps": 50,
+    "outer_steps": 18,
+    "sampler": "native_cfg",
+    "temperature": 1.0
+  },
+  "evaluation": {
+    "batch_size": 32,
+    "drop_last": true,
+    "max_motion_length": 196,
+    "max_text_length": 20,
+    "num_workers": 0,
+    "seed": 3407,
+    "selection": "minimum_validation_generation_fid_earlier_tie",
+    "shuffle": true,
+    "split": "val",
+    "test_seeds": [
+      10000,
+      10001,
+      10002,
+      10003,
+      10004,
+      10005,
+      10006,
+      10007,
+      10008,
+      10009,
+      10010,
+      10011,
+      10012,
+      10013,
+      10014,
+      10015,
+      10016,
+      10017,
+      10018,
+      10019
+    ],
+    "unit_length": 4,
+    "frequency": "every_completed_epoch",
+    "separate_rng_process": true
+  },
+  "data_manifest": "/repro/asset-workspace/runs/paper_controls_20260920/assets/kit_dataset_audit.json",
+  "schema": 1,
+  "seed": 3407,
+  "cpu_threads": 4,
+  "tf32": true,
+  "initialization": "from_scratch_KIT_no_HumanML_weights",
+  "objective": "native_from_scratch",
+  "free_space_floor_bytes": 32212254720,
+  "kit_base": {
+    "batch_size": 16,
+    "betas": [
+      0.9,
+      0.99
+    ],
+    "ema": 0.9999,
+    "epochs": 500,
+    "grad_clip": null,
+    "lr": 0.0002,
+    "lr_decay": 0.1,
+    "micro_batch": 16,
+    "milestones": [
+      20000
+    ],
+    "save_every": 500,
+    "selection": "minimum_validation_generation_fid_earlier_tie",
+    "validation_every": 274,
+    "warmup_updates": 2000,
+    "weight_decay": 1e-05,
+    "validation_every_epoch": true,
+    "validation_samplers": [
+      "native_cfg"
+    ]
+  },
+  "experiment_id": "K_FSQ"
+}

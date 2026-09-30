@@ -1,0 +1,55 @@
+{
+  "date": "2026-09-30",
+  "source_commit": "4404452e1cc18ab2020ded379a40efb43b176e1a",
+  "original_source_files": 36,
+  "byte_identical_files": 34,
+  "publication_changes": [
+    {
+      "path": "experiments/kit_epoch_20260929/benchmark_control.py",
+      "remote_sha256": "542decb4b07d3055f39662ec95bc0159c87d7fd5779869c6a06f0817a621e2cc",
+      "published_sha256": "4903e96d57308b821ed46578f871e50ea94f1248fe00ce54244be16d44645c66"
+    },
+    {
+      "path": "experiments/kit_epoch_20260929/prepare_epoch_run.py",
+      "remote_sha256": "c5ea9f6c7d67ed2a17413a810141fe0fff74333857ed4f779eef1d8d1201558f",
+      "published_sha256": "8427813e0cdc36fdf7b8e2a65c17acab3b826d8d2e3457f0981bb876a09a8e90"
+    }
+  ],
+  "core_train_evaluate_apg_byte_identical": true,
+  "checks": {
+    "cpu_epoch_contract": {
+      "tests": 4,
+      "result": "PASS"
+    },
+    "cpu_benchmark_contract": {
+      "tests": 6,
+      "result": "PASS"
+    },
+    "prepare_cli_help": "PASS",
+    "configuration_templates": "Only machine-dependent paths differ; locked hashes and parameters retained",
+    "source_ast_parse": "PASS",
+    "git_diff_check": {
+      "status": "Two inherited whitespace warnings retained to preserve remote source bytes",
+      "files": [
+        "diffusions/diffusion/__init__.py:13",
+        "models/JointDiffusion.py:109"
+      ]
+    }
+  },
+  "prior_remote_checks": {
+    "date": "2026-09-29",
+    "real_KIT_training_and_generation": "PASS",
+    "continuous8_vs_resume4_plus4": "PASS",
+    "samplers": [
+      "SiT native CFG",
+      "JiT native CFG",
+      "JiT direct APG"
+    ]
+  },
+  "limitations": [
+    "No clean-install environment rebuild was performed.",
+    "Publication-only CLI and benchmark changes were checked locally, not deployed to active training.",
+    "KIT training is incomplete; published quality values are validation snapshots, not test results.",
+    "Data, pretrained evaluators, CLIP source/weights and AE checkpoint are external assets."
+  ]
+}

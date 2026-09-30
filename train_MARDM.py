@@ -252,7 +252,8 @@ if __name__ == "__main__":
                             'FSQ-MARDM-SiT-XL', 'FSQ-MARDM-DDPM-XL',
                             # FSQ-MARDM with DiffTransformer (JiT-style)
                             'FSQ-MARDM-DiT-S', 'FSQ-MARDM-DiT-B', 
-                            'FSQ-MARDM-DiT-L', 'FSQ-MARDM-DiT-XL'
+                            'FSQ-MARDM-DiT-L', 'FSQ-MARDM-DiT-XL',
+                            'FSQ-MARDM-Joint-XL'
                         ],
                         help='MARDM model type')
     parser.add_argument('--dataset_name', type=str, default='t2m')
